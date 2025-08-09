@@ -5,7 +5,7 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
-API_KEY = "7716f730-5df3-4d93-93da-7325d3870001"
+API_KEY = "-7325d3870001"
 
 @app.route("/etri/morpheme", methods=["POST"])
 def morpheme():
