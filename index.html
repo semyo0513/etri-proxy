@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>반려동물 돌봄 플랫폼</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script>
+    // 카카오맵 API (실제 키로 교체 필요)
+    const KAKAO_MAP_API_KEY = 'YOUR_KAKAO_MAP_API_KEY';
+  </script>
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_MAP_API_KEY&libraries=services,clusterer,drawing"></script>
+  <style>
+    :root {
+      --primary: #4e89ae;
+      --secondary: #43658b;
+      --accent: #ed6663;
+      --light: #f1f6f9;
+      --dark: #1a374d;
+      --success: #7bc74d;
+      --warning: #ffb677;
+      --gray: #e8e8e8;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    
+    body {
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 20px 0;
+      box-shadow: var(--shadow);
+      text-align: center;
+      border-radius: 0 0 20px 20px;
+      margin-bottom: 30px;
+    }
+    
+    header h1 {
+      margin-bottom: 10px;
+      font-size: 2.5rem;
+    }
+    
+    header p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+    
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      background: white;
+      border-radius: 50px;
+      padding: 10px;
+      box-shadow: var(--shadow);
+    }
+    
+    .tab-btn {
+      padding: 15px 25px;
+      margin: 0 5px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 30px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+    }
+    
+    .tab-btn i {
+      margin-right: 10px;
+    }
+    
+    .tab-btn:hover {
+      background: var(--gray);
+    }
+    
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .tab-content {
+      display: none;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+      min-height: 500px;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.5s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .section-title {
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      color: var(--secondary);
+      padding-bottom: 15px;
+      border-bottom: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+    }
+    
+    .section-title i {
+      margin-right: 15px;
+      background: var(--accent);
+      color: white;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 25px;
+      transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .card-header {
+      background: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+    
+    .card-body {
+      padding: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid var(--gray);
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 12px 25px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .btn:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+    }
+    
+    .btn-accent {
+      background: var(--accent);
+    }
+    
+    .btn-accent:hover {
+      background: #e05552;
+    }
+    
+    .btn-success {
+      background: var(--success);
+    }
+    
+    .btn-block {
+      display: block;
+      width: 100%;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+      margin-top: 25px;
+    }
+    
+    .pet-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    
+    .pet-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .pet-image {
+      height: 200px;
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .pet-info {
+      padding: 20px;
+      background: white;
+    }
+    
+    .pet-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+    
+    .pet-meta {
+      color: #666;
+      margin-bottom: 15px;
+    }
+    
+    .pet-description {
+      margin-bottom: 20px;
+    }
+    
+    .map-container {
+      height: 500px;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-top: 20px;
+      box-shadow: var(--shadow);
+    }
+    
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 500px;
+      border: 1px solid var(--gray);
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #f9f9f9;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      display: flex;
+    }
+    
+    .message.user {
+      justify-content: flex-end;
+    }
+    
+    .message-bubble {
+      max-width: 70%;
+      padding: 12px 18px;
+      border-radius: 20px;
+    }
+    
+    .message.user .message-bubble {
+      background: var(--primary);
+      color: white;
+      border-top-right-radius: 5px;
+    }
+    
+    .message.ai .message-bubble {
+      background: white;
+      border: 1px solid var(--gray);
+      border-top-left-radius: 5px;
+    }
+    
+    .chat-input {
+      display: flex;
+      padding: 15px;
+      background: white;
+      border-top: 1px solid var(--gray);
+    }
+    
+    .chat-input input {
+      flex: 1;
+      margin-right: 10px;
+    }
+    
+    .score-card {
+      text-align: center;
+      padding: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+    }
+    
+    .score-value {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 15px 0;
+    }
+    
+    .progress-container {
+      background: var(--gray);
+      border-radius: 10px;
+      height: 20px;
+      margin-bottom: 15px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+    
+    .score-label {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .exam-question {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+      margin-bottom: 25px;
+    }
+    
+    .exam-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .exam-option {
+      padding: 15px;
+      border: 2px solid var(--gray);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .exam-option:hover {
+      border-color: var(--primary);
+      background: rgba(78, 137, 174, 0.05);
+    }
+    
+    .exam-option.selected {
+      border-color: var(--primary);
+      background: rgba(78, 137, 174, 0.1);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 30px 0;
+      color: #666;
+      margin-top: 50px;
+    }
+    
+    @media (max-width: 768px) {
+      .tabs {
+        flex-direction: column;
+        border-radius: 15px;
+      }
+      
+      .tab-btn {
+        margin: 5px 0;
+        border-radius: 15px;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1><i class="fas fa-paw"></i> 반려동물 돌봄 플랫폼</h1>
+      <p>AI와 함께하는 스마트한 반려생활</p>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="openTab('pet-sim')">
+        <i class="fas fa-robot"></i> AI 펫 시뮬레이션
+      </button>
+      <button class="tab-btn" onclick="openTab('certification')">
+        <i class="fas fa-certificate"></i> 펫파밍 인증시험
+      </button>
+      <button class="tab-btn" onclick="openTab('adoption')">
+        <i class="fas fa-heart"></i> 입양 매칭
+      </button>
+      <button class="tab-btn" onclick="openTab('heatmap')">
+        <i class="fas fa-map-marked-alt"></i> 길고양이 히트맵
+      </button>
+      <button class="tab-btn" onclick="openTab('community')">
+        <i class="fas fa-address-book"></i> 커뮤니티 연락처
+      </button>
+    </div>
+    
+    <!-- AI 펫 시뮬레이션 탭 -->
+    <div id="pet-sim" class="tab-content active">
+      <h2 class="section-title"><i class="fas fa-robot"></i> AI 펫 시뮬레이션</h2>
+      
+      <div class="grid">
+        <div class="card">
+          <div class="card-header">반려동물 프로필</div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>반려동물 종류</label>
+              <select id="pet-type">
+                <option value="dog">강아지</option>
+                <option value="cat">고양이</option>
+                <option value="other">기타</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>이름</label>
+              <input type="text" id="pet-name" placeholder="뽀삐">
+            </div>
+            
+            <div class="form-group">
+              <label>나이</label>
+              <input type="number" id="pet-age" placeholder="3">
+            </div>
+            
+            <button class="btn btn-block" onclick="savePetProfile()">프로필 저장하기</button>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">돌봄 점수 리포트</div>
+          <div class="card-body">
+            <div class="score-card">
+              <h3>전체 돌봄 점수</h3>
+              <div class="score-value">4.2<span style="font-size: 1.5rem;">/5</span></div>
+              <p>최근 30일 평균 점수입니다</p>
+            </div>
+            
+            <div class="form-group">
+              <div class="score-label">
+                <span>애정·놀이</span>
+                <span>4.5</span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-bar" style="width: 90%"></div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="score-label">
+                <span>급식·영양</span>
+                <span>4.0</span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-bar" style="width: 80%"></div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="score-label">
+                <span>배변·위생</span>
+                <span>3.8</span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-bar" style="width: 76%"></div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="score-label">
+                <span>운동·훈련</span>
+                <span>4.2</span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-bar" style="width: 84%"></div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="score-label">
+                <span>안전·응급</span>
+                <span>4.5</span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-bar" style="width: 90%"></div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="score-label">
+                <span>예방의학</span>
+                <span>4.3</span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-bar" style="width: 86%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="message ai">
+            <div class="message-bubble">
+              안녕하세요! 저는 여러분의 AI 반려동물입니다. 오늘도 반려동물과 함께 행복한 시간 보내세요!
+            </div>
+          </div>
+        </div>
+        <div class="chat-input">
+          <input type="text" id="chat-input" placeholder="AI 반려동물에게 말을 걸어보세요...">
+          <button class="btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 펫파밍 인증시험 탭 -->
+    <div id="certification" class="tab-content">
+      <h2 class="section-title"><i class="fas fa-certificate"></i> 펫파밍 인증시험</h2>
+      
+      <div class="card">
+        <div class="card-header">인증시험 안내</div>
+        <div class="card-body">
+          <p>반려동물을 키우기 위한 기본 소양을 평가하는 인증시험입니다. 10문제 중 7문제 이상 맞추면 인증서가 발급됩니다.</p>
+          <p>인증서를 획득하면 입양 매칭 서비스를 이용하실 수 있습니다.</p>
+          <button class="btn btn-accent" onclick="startExam()">시험 시작하기</button>
+        </div>
+      </div>
+      
+      <div id="exam-container" style="display: none;">
+        <div class="exam-question">
+          <h3 id="question-text">질문이 표시됩니다...</h3>
+          <div class="exam-options" id="exam-options">
+            <!-- 옵션 자동 생성 -->
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+          <button class="btn btn-accent" onclick="submitAnswer()" id="submit-btn">다음 문제</button>
+          <div id="exam-progress" style="margin-top: 15px;">문제 1/10</div>
+        </div>
+      </div>
+      
+      <div id="exam-result" style="display: none;">
+        <!-- 결과 표시 -->
+      </div>
+    </div>
+    
+    <!-- 입양 매칭 탭 -->
+    <div id="adoption" class="tab-content">
+      <h2 class="section-title"><i class="fas fa-heart"></i> 입양 매칭</h2>
+      
+      <div class="card">
+        <div class="card-header">입양 조건 설정</div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="form-group">
+              <label>희망하는 반려동물 종류</label>
+              <select id="adopt-type">
+                <option value="">모두</option>
+                <option value="dog">강아지</option>
+                <option value="cat">고양이</option>
+                <option value="other">기타</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>나이대</label>
+              <select id="adopt-age">
+                <option value="">모두</option>
+                <option value="puppy">아기 (0-2세)</option>
+                <option value="adult">성인 (3-7세)</option>
+                <option value="senior">노년 (8세 이상)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>성격</label>
+              <select id="adopt-personality">
+                <option value="">모두</option>
+                <option value="active">활발한</option>
+                <option value="calm">차분한</option>
+                <option value="friendly">사교적인</option>
+                <option value="independent">독립적인</option>
+              </select>
+            </div>
+          </div>
+          
+          <button class="btn btn-accent" onclick="findMatch()">매칭 찾기</button>
+        </div>
+      </div>
+      
+      <h3 style="margin: 25px 0;">추천 입양 동물</h3>
+      <div class="grid" id="adoption-grid">
+        <!-- 동물 카드 자동 생성 -->
+      </div>
+    </div>
+    
+    <!-- 길고양이 히트맵 탭 -->
+    <div id="heatmap" class="tab-content">
+      <h2 class="section-title"><i class="fas fa-map-marked-alt"></i> 길고양이 히트맵 네트워크</h2>
+      
+      <div class="card">
+        <div class="card-header">길고양이 관찰 기록</div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>위치</label>
+            <div id="location-info" style="margin-bottom: 15px;">위치 정보를 가져오는 중...</div>
+            <button class="btn" onclick="getLocation()"><i class="fas fa-location-dot"></i> 현재 위치 사용</button>
+          </div>
+          
+          <div class="form-group">
+            <label>사진</label>
+            <input type="file" id="cat-photo" accept="image/*">
+          </div>
+          
+          <div class="form-group">
+            <label>상태 설명</label>
+            <textarea id="cat-description" rows="3" placeholder="고양이의 상태, 행동 등을 자세히 적어주세요"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>돌봄 필요 여부</label>
+            <select id="care-status">
+              <option value="good">건강해 보임</option>
+              <option value="food">먹이 필요</option>
+              <option value="water">물 필요</option>
+              <option value="medical">의료 지원 필요</option>
+              <option value="rescue">구조 필요</option>
+            </select>
+          </div>
+          
+          <button class="btn btn-accent" onclick="saveCatSighting()">기록 저장</button>
+        </div>
+      </div>
+      
+      <h3 style="margin: 25px 0;">길고양이 관찰 지도</h3>
+      <div class="map-container" id="heatmap-container"></div>
+    </div>
+    
+    <!-- 커뮤니티 연락처 탭 -->
+    <div id="community" class="tab-content">
+      <h2 class="section-title"><i class="fas fa-address-book"></i> 커뮤니티 연락처</h2>
+      
+      <div class="card">
+        <div class="card-header">지역별 연락처 정보</div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>지역 선택</label>
+            <select id="region-select">
+              <option value="all">전체</option>
+              <option value="seoul">서울</option>
+              <option value="busan">부산</option>
+              <option value="daegu">대구</option>
+              <option value="incheon">인천</option>
+              <option value="gwangju">광주</option>
+              <option value="daejeon">대전</option>
+              <option value="ulsan">울산</option>
+            </select>
+          </div>
+          
+          <button class="btn" onclick="loadContacts()">연락처 불러오기</button>
+        </div>
+      </div>
+      
+      <div id="contacts-container" class="grid">
+        <!-- 연락처 카드 자동 생성 -->
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <div class="container">
+      <p>© 2023 반려동물 돌봄 플랫폼. 모든 권리 보유.</p>
+      <p>구글 시트, 구글 드라이브, 앱스 스크립트 기반 웹앱</p>
+    </div>
+  </footer>
+  
+  <script>
+    // 탭 전환 기능
+    function openTab(tabName) {
+      const tabContents = document.getElementsByClassName('tab-content');
+      for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+      }
+      
+      const tabButtons = document.getElementsByClassName('tab-btn');
+      for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+      }
+      
+      document.getElementById(tabName).classList.add('active');
+      event.currentTarget.classList.add('active');
+      
+      // 지도 탭 활성화 시 지도 초기화
+      if (tabName === 'heatmap') {
+        initMap();
+      }
+    }
+    
+    // AI 펫 시뮬레이션 기능
+    function savePetProfile() {
+      const petType = document.getElementById('pet-type').value;
+      const petName = document.getElementById('pet-name').value;
+      
+      if (!petName) {
+        alert('반려동물 이름을 입력해주세요');
+        return;
+      }
+      
+      const profileData = {
+        petType: petType,
+        petName: petName,
+        age: document.getElementById('pet-age').value || '미입력',
+        breed: '미입력',
+        weight: '미입력',
+        neutered: '미입력',
+        vaccinations: '미입력',
+        healthIssues: '없음',
+        environment: '실내',
+        cohabitants: '1인',
+        dailyRoutine: '미입력'
+      };
+      
+      // Google Apps Script 호출 (가상)
+      console.log('프로필 저장:', profileData);
+      alert('반려동물 프로필이 저장되었습니다!');
+      
+      // 채팅창에 메시지 추가
+      addChatMessage(`안녕하세요! ${petName}의 AI 반려동물입니다. 오늘은 어떤 활동을 해볼까요?`, 'ai');
+    }
+    
+    function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      
+      if (message) {
+        addChatMessage(message, 'user');
+        input.value = '';
+        
+        // AI 응답 생성 (가상)
+        setTimeout(() => {
+          const responses = [
+            "그것은 좋은 생각이네요! 함께 해봐요.",
+            "우리 친구를 위해 이런 활동을 해보는 건 어떨까요?",
+            "잘하고 계세요! 오늘도 행복한 시간 보내세요.",
+            "건강을 위해 정기적인 검진을 받는 것도 중요해요.",
+            "물은 항상 깨끗하게 제공해주는 게 좋습니다."
+          ];
+          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+          addChatMessage(randomResponse, 'ai');
+        }, 1000);
+      }
+    }
+    
+    function addChatMessage(message, sender) {
+      const chatMessages = document.getElementById('chat-messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${sender}`;
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      bubble.textContent = message;
+      
+      messageDiv.appendChild(bubble);
+      chatMessages.appendChild(messageDiv);
+      
+      // 스크롤 아래로 이동
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // 펫파밍 인증시험 기능
+    let currentQuestion = 0;
+    let userAnswers = [];
+    let questions = [];
+    
+    function startExam() {
+      document.getElementById('exam-container').style.display = 'block';
+      document.querySelector('#certification .card').style.display = 'none';
+      
+      // 시험 문제 가져오기 (가상)
+      questions = [
+        {
+          question: "반려견의 적정 산책 시간은 하루에 얼마나 되어야 할까요?",
+          options: ["10분 이내", "30분-1시간", "2시간 이상", "산책은 필요하지 않음"],
+          correctAnswer: 1
+        },
+        {
+          question: "고양이에게 위험한 음식은 무엇인가요?",
+          options: ["생선", "닭고기", "초콜릿", "쌀"],
+          correctAnswer: 2
+        },
+        // 추가 문제들...
+      ];
+      
+      currentQuestion = 0;
+      userAnswers = [];
+      showQuestion(currentQuestion);
+    }
+    
+    function showQuestion(index) {
+      if (index >= questions.length) {
+        finishExam();
+        return;
+      }
+      
+      const question = questions[index];
+      document.getElementById('question-text').textContent = question.question;
+      
+      const optionsContainer = document.getElementById('exam-options');
+      optionsContainer.innerHTML = '';
+      
+      question.options.forEach((option, i) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'exam-option';
+        optionDiv.textContent = option;
+        optionDiv.onclick = function() {
+          // 선택된 옵션 처리
+          document.querySelectorAll('.exam-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          this.classList.add('selected');
+          userAnswers[index] = i;
+        };
+        optionsContainer.appendChild(optionDiv);
+      });
+      
+      document.getElementById('exam-progress').textContent = `문제 ${index + 1}/${questions.length}`;
+      document.getElementById('submit-btn').textContent = index === questions.length - 1 ? '제출하기' : '다음 문제';
+    }
+    
+    function submitAnswer() {
+      if (userAnswers[currentQuestion] === undefined) {
+        alert('답변을 선택해주세요');
+        return;
+      }
+      
+      currentQuestion++;
+      showQuestion(currentQuestion);
+    }
+    
+    function finishExam() {
+      document.getElementById('exam-container').style.display = 'none';
+      
+      // 채점 (가상)
+      const score = Math.floor(Math.random() * 4) + 7; // 7-10점
+      const passed = score >= 7;
+      
+      const resultDiv = document.getElementById('exam-result');
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = `
+        <div class="card">
+          <div class="card-header">시험 결과</div>
+          <div class="card-body">
+            <h3>${score}점 / ${questions.length}점</h3>
+            <p>${passed ? '축하합니다! 펫파밍 인증시험에 합격하셨습니다.' : '아쉽네요. 다음 기회에 다시 도전해주세요.'}</p>
+            
+            ${passed ? `
+              <button class="btn btn-success" onclick="downloadCertificate()">
+                <i class="fas fa-download"></i> 인증서 다운로드
+              </button>
+            ` : `
+              <button class="btn btn-accent" onclick="startExam()">
+                <i class="fas fa-redo"></i> 다시 시도하기
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+    }
+    
+    function downloadCertificate() {
+      alert('인증서가 다운로드되었습니다!');
+      // 실제 구현에서는 Google Apps Script를 통해 생성된 인증서 다운로드
+    }
+    
+    // 입양 매칭 기능
+    function findMatch() {
+      const type = document.getElementById('adopt-type').value;
+      const age = document.getElementById('adopt-age').value;
+      const personality = document.getElementById('adopt-personality').value;
+      
+      // 가상의 매칭 결과 생성
+      const animals = [
+        {
+          id: 1,
+          name: "초코",
+          type: "dog",
+          age: "2세",
+          breed: "믹스견",
+          healthStatus: "건강",
+          personality: "활발한",
+          photoUrl: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=500"
+        },
+        {
+          id: 2,
+          name: "나비",
+          type: "cat",
+          age: "3세",
+          breed: "코리안 숏헤어",
+          healthStatus: "건강",
+          personality: "차분한",
+          photoUrl: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=500"
+        },
+        // 추가 동물들...
+      ];
+      
+      // 필터링
+      const filteredAnimals = animals.filter(animal => {
+        if (type && animal.type !== type) return false;
+        if (age && !checkAgeGroup(animal.age, age)) return false;
+        if (personality && animal.personality !== personality) return false;
+        return true;
+      });
+      
+      displayAnimals(filteredAnimals);
+    }
+    
+    function checkAgeGroup(age, group) {
+      const ageNum = parseInt(age);
+      switch(group) {
+        case "puppy": return ageNum <= 2;
+        case "adult": return ageNum > 2 && ageNum <= 7;
+        case "senior": return ageNum > 7;
+        default: return true;
+      }
+    }
+    
+    function displayAnimals(animals) {
+      const container = document.getElementById('adoption-grid');
+      container.innerHTML = '';
+      
+      if (animals.length === 0) {
+        container.innerHTML = '<p>조건에 맞는 입양 가능한 동물이 없습니다.</p>';
+        return;
+      }
+      
+      animals.forEach(animal => {
+        const card = document.createElement('div');
+        card.className = 'pet-card';
+        card.innerHTML = `
+          <div class="pet-image" style="background-image: url('${animal.photoUrl}')"></div>
+          <div class="pet-info">
+            <div class="pet-name">${animal.name}</div>
+            <div class="pet-meta">${animal.breed} • ${animal.age}</div>
+            <div class="pet-description">${animal.personality} 성격, ${animal.healthStatus}</div>
+            <button class="btn btn-block" onclick="showAnimalDetail(${animal.id})">상세 정보 보기</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+    
+    function showAnimalDetail(id) {
+      alert(`동물 ID ${id}의 상세 정보 페이지로 이동합니다.`);
+      // 실제 구현에서는 선택된 동물의 상세 정보 페이지 표시
+    }
+    
+    // 길고양이 히트맵 기능
+    let map;
+    let markers = [];
+    
+    function initMap() {
+      const container = document.getElementById('heatmap-container');
+      if (!container) return;
+      
+      // 지도 초기화 (가상)
+      container.innerHTML = '<div style="padding: 20px; text-align: center;">카카오맵 API를 이용한 히트맵이 표시됩니다</div>';
+      
+      // 실제 구현에서는 카카오맵 API를 사용
+      /*
+      const mapOption = {
+        center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심
+        level: 8
+      };
+      
+      map = new kakao.maps.Map(container, mapOption);
+      loadHeatmapData();
+      */
+    }
+    
+    function getLocation() {
+      document.getElementById('location-info').textContent = "위치 정보 사용에 동의해주세요";
+      
+      // 가상 위치 정보
+      setTimeout(() => {
+        document.getElementById('location-info').innerHTML = `
+          <strong>위치:</strong> 서울시 강남구 역삼동<br>
+          <strong>좌표:</strong> 37.5013, 127.0397
+        `;
+      }, 1500);
+    }
+    
+    function saveCatSighting() {
+      const description = document.getElementById('cat-description').value;
+      
+      if (!description) {
+        alert('고양이 상태 설명을 입력해주세요');
+        return;
+      }
+      
+      // 가상 데이터 저장
+      const data = {
+        lat: 37.5013 + (Math.random() - 0.5) * 0.1,
+        lng: 127.0397 + (Math.random() - 0.5) * 0.1,
+        description: description,
+        careStatus: document.getElementById('care-status').value,
+        photo: null
+      };
+      
+      alert('길고양이 관찰 기록이 저장되었습니다!');
+      
+      // 폼 초기화
+      document.getElementById('cat-description').value = '';
+      document.getElementById('care-status').value = 'good';
+      
+      // 지도 업데이트 (가상)
+      addHeatmapMarker(data);
+    }
+    
+    function addHeatmapMarker(data) {
+      // 실제 구현에서는 카카오맵에 마커 추가
+      console.log('히트맵 마커 추가:', data);
+    }
+    
+    // 커뮤니티 연락처 기능
+    function loadContacts() {
+      const region = document.getElementById('region-select').value;
+      
+      // 가상 연락처 데이터
+      const contacts = [
+        {
+          name: "김동물사랑",
+          organization: "서울 동물보호소",
+          phone: "02-1234-5678",
+          email: "seoul@animals.org",
+          serviceArea: "서울 전역"
+        },
+        {
+          name: "박보호자",
+          organization: "부산 길고양이 지킴이",
+          phone: "051-2345-6789",
+          email: "busan@cats.kr",
+          serviceArea: "부산 해운대구, 수영구"
+        },
+        // 추가 연락처...
+      ];
+      
+      // 필터링
+      const filteredContacts = region === 'all' 
+        ? contacts 
+        : contacts.filter(contact => contact.serviceArea.includes(region));
+      
+      displayContacts(filteredContacts);
+    }
+    
+    function displayContacts(contacts) {
+      const container = document.getElementById('contacts-container');
+      container.innerHTML = '';
+      
+      contacts.forEach(contact => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-header">${contact.organization}</div>
+          <div class="card-body">
+            <p><strong>담당자:</strong> ${contact.name}</p>
+            <p><strong>전화:</strong> ${contact.phone}</p>
+            <p><strong>이메일:</strong> ${contact.email}</p>
+            <p><strong>서비스 지역:</strong> ${contact.serviceArea}</p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+    
+    // 페이지 로드 시 초기화
+    window.onload = function() {
+      // 입양 동물 목록 표시
+      const animals = [
+        {
+          id: 1,
+          name: "초코",
+          type: "dog",
+          age: "2세",
+          breed: "믹스견",
+          healthStatus: "건강",
+          personality: "활발한",
+          photoUrl: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=500"
+        },
+        {
+          id: 2,
+          name: "나비",
+          type: "cat",
+          age: "3세",
+          breed: "코리안 숏헤어",
+          healthStatus: "건강",
+          personality: "차분한",
+          photoUrl: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=500"
+        }
+      ];
+      displayAnimals(animals);
+      
+      // 연락처 목록 표시
+      loadContacts();
+    };
+  </script>
+</body>
+</html>
